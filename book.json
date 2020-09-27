@@ -1,0 +1,12 @@
+{
+	"title": "TiDB in Action",
+	"plugins": [
+		"analytics",
+		"yahei"
+	],
+	"pluginsConfig": {
+		"analytics": {
+			"google": "UA-160169257-1"
+		}
+	}
+}
