@@ -117,9 +117,9 @@ region = us-west-21
 
 ## 3. データベースをアクセスする
 
-`terraform apply` 完成后，可先通过 `ssh` 远程连接到堡垒机，再通过 MySQL client 来访问 TiDB 集群。
+`terraform apply`が完了したら、まず `ssh` を使って踏み台に接続し、MySQLクライアントを使って TiDB クラスタにアクセスすることができる。
 
-所需命令如下（用上面的输出信息替换 `<>` 部分内容)：
+コマンドは以下の通りです（`<>`の部分を上記の出力メッセージに置き換えてください）。
 
 ```shell
 ssh -i credentials/<eks_name>.pem centos@<bastion_ip>
@@ -129,11 +129,11 @@ ssh -i credentials/<eks_name>.pem centos@<bastion_ip>
 mysql -h <default-cluster_tidb-dns> -P 4000 -u root
 ```
 
-`eks_name` 默认为 `my-cluster`。如果 DNS 名字无法解析，请耐心等待几分钟。
+`eks_name` のデフォルト値は `my-cluster` です。 DNS名が解決しない場合は、数分お待ちください。
 
-还可以通过 `kubectl` 和 `helm` 命令使用 kubeconfig 文件 `credentials/kubeconfig_<eks_name>` 和 EKS 集群交互，主要有两种方式，如下所示。
+また、`kubectl` コマンドと `helm` コマンドで `kubeconfig` ファイル `credentials/kubeconfig_<eks_name>` を使用して、 EKS クラスタと対話することもできる。下記の２つの方式がある。
 
-- 指定 --kubeconfig 参数：
+- `--kubeconfig` パラメーターを指定する：
 
     ```shell
     kubectl --kubeconfig credentials/kubeconfig_<eks_name> get po -n <default_cluster_name>
@@ -143,7 +143,7 @@ mysql -h <default-cluster_tidb-dns> -P 4000 -u root
     helm --kubeconfig credentials/kubeconfig_<eks_name> ls
     ```
 
-- 或者，设置 KUBECONFIG 环境变量：
+- `KUBECONFIG` 環境変数を設定する
 
     ```shell
     export KUBECONFIG=$PWD/credentials/kubeconfig_<eks_name>
@@ -157,34 +157,34 @@ mysql -h <default-cluster_tidb-dns> -P 4000 -u root
     helm ls
     ```
 
-## 4. Grafana 监控
+## 4. Grafana 監視
 
-可以通过浏览器访问 `<monitor-dns>:3000` 地址查看 Grafana 监控指标。
+ブラウザで `<monitor-dns>:3000` のURLで Grafana をアクセスすることができる。
 
-Grafana 默认登录信息：
+Grafana の初期ユーザー情報(初回ログインの後パスワード変更の画面が出る)：
 
-- 用户名：admin
-- 密码：admin
+- ユーザー名：admin
+- パスワード：admin 
 
-## 5. 升级 TiDB 集群
+## 5. TiDB クラスターをアップグレードする
 
-要升级 TiDB 集群，可在 `terraform.tfvars` 文件中设置 `default_cluster_version` 变量到更高版本，然后运行 `terraform apply`。
+TiDB クラスターをアップグレードしたい場合、 `terraform.tfvars` ファイルに `default_cluster_version` 変数を新バージョンコードに変更して、 `terraform apply`を実行してださい。
 
-例如，要升级 TiDB 集群到 4.0.1，则修改 `default_cluster_version` 为 `v4.0.1`：
+例、 TiDB クラスターを 4.0.1 にアップグレードする場合、 `default_cluster_version` を `v4.0.1` に：
 
 ```
 default_cluster_version= "v4.0.1"
 ```
 
-> **注意：**
+> **注意点：**
 >
-> 升级过程会持续一段时间，可以通过 `kubectl --kubeconfig credentials/kubeconfig_<eks_name> get po -n <default_cluster_name> --watch` 命令持续观察升级进度。
+> アップグレードには時間がかかるので、 `kubectl --kubeconfig credentials/kubeconfig_<eks_name> get po -n <default_cluster_name> --watch` コマンドでアップグレードの進捗状況を継続的に確認することができる。
 
-## 6. 扩容 TiDB 集群
+## 6. TiDBクラスターのスケーリング
 
-若要扩容 TiDB 集群，可在 `terraform.tfvars` 文件中设置 `default_cluster_tikv_count` 或者 `default_cluster_tidb_count` 变量，然后运行 `terraform apply`。
+TiDBクラスターをスケーリングしたい場合、 `terraform.tfvars` ファイルに `default_cluster_tikv_count` か `default_cluster_tidb_count` 変数かを変更して、 `terraform apply` を実行してください。
 
-例如，可以将 `default_cluster_tidb_count` 从 2 改为 4 以扩容 TiDB：
+例、 `default_cluster_tidb_count` を 2 から 4 に変更し、TiDB をスケーリングする：
 
 ```
 default_cluster_tidb_count = 4
