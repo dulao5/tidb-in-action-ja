@@ -1,25 +1,24 @@
 ---
-title: 在 AWS EKS 上部署 TiDB 集群
+title: AWS EKS に TiDB クラスターをデプロイする
 category: how-to
 ---
 
-# 1.2.3.1.1 在 AWS EKS 上部署 TiDB 集群
+# 1.2.3.1.1 AWS EKS に TiDB クラスターをデプロイする
 
-本节介绍如何使用个人电脑（Linux 或 macOS 系统）在 AWS EKS (Elastic Kubernetes Service) 上部署 TiDB 集群。
+ここでは、パソコン( Linux または macOS システム)を使って、AWS EKS(Elastic Kubernetes Service)上に TiDB クラスタをデプロイする方法を説明する。
+## 1. 環境の準備
 
-## 1. 环境配置准备
+デプロイする前に、下記のソフトウェアがインストールされ、設定されていることを確認してください。：
 
-部署前，请确认已安装以下软件并完成配置：
+* [awscli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) >= 1.16.73、 AWS のリソースをコントロールする
 
-* [awscli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) >= 1.16.73，控制 AWS 资源
-
-    要与 AWS 交互，必须[配置 `awscli`](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)。最快的方式是使用 `aws configure` 命令:
+    AWSと連携するには、 [`awscli`を設定する](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)必要がある。 最速の方法は、`aws configure`コマンドの`awscli`を使うことである
 
     ``` shell
     aws configure
     ```
 
-    替换下面的 AWS Access Key ID 和 AWS Secret Access Key：
+    以下の AWS Access Key ID と AWS Secret Access Key を入れ替えます。
 
     ```
     AWS Access Key ID [None]: IOSFODNN7EXAMPLE
@@ -29,55 +28,56 @@ category: how-to
     ```
 
     > **注意：**
-    >
-    > Access key 必须至少具有以下权限：创建 VPC、创建 EBS、创建 EC2 和创建 Role。
+    > 
+    > アクセスキーには、少なくとも以下の権限が必要です:
+    > VPCの作成、EBSの作成、EC2の作成、およびRoleの作成
 
 * [terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) >= 0.12
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl) >= 1.11
 * [helm](https://helm.sh/docs/using_helm/#installing-the-helm-client) >= 2.11.0 且 < 3.0.0
 * [jq](https://stedolan.github.io/jq/download/)
-* [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html)，AWS 权限鉴定工具，确保安装在 `PATH` 路径下。
+* [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html)、AWS Privilege Authentication ツールは、 `PATH` パスの下にインストールされていることを確認してください。。
 
-    最简单的安装方法是下载编译好的二进制文件 `aws-iam-authenticator`，如下所示。
+    最も簡単なインストール方法は、以下のようにコンパイルされたバイナリファイル `aws-iam-authenticator` をダウンロードすることである。
 
-    Linux 用户下载二进制文件：
+    Linux ユーザー：
 
     ``` shell
     curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator
     ```
 
-    macOS 用户下载二进制文件：
+    macOS ユーザー：
 
     ``` shell
     curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/darwin/amd64/aws-iam-authenticator
     ```
 
-    二进制文件下载完成后，执行以下操作：
+    バイナリファイルをダウンロードしたら、次のようにします。：
 
     ``` shell
     chmod +x ./aws-iam-authenticator && \
     sudo mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
     ```
 
-## 2. 部署集群
+## 2. クラスターをデプロイする
 
-默认部署会创建一个新的 VPC、一个 t2.micro 实例作为堡垒机，并包含以下 ec2 实例作为工作节点的 EKS 集群：
+デフォルトのデプロイメントでは、新しい VPC 、踏み台としての t2.micro インスタンス、およびワークノードとして次の ec2 インスタンスを含む EKS クラスタが作成されます。
 
-* 3 台 m5.xlarge 实例，部署 PD
-* 3 台 c5d.4xlarge 实例，部署 TiKV
-* 2 台 c5.4xlarge 实例，部署 TiDB
-* 1 台 c5.2xlarge 实例，部署监控组件
+* m5.xlarge X 3台 : PD
+* c5d.4xlarge X 3台: TiKV
+* c5.4xlarge X 2 : 、TiDB
+* c5.2xlarge １台 : ト監視コンポーネント
 
-使用如下命令部署集群。
+下記のコマンドでクラスターをデプロイする
 
-从 Github 克隆代码并进入指定路径：
+Github からコードをクローンして、指定したパスに移動する:
 
 ``` shell
 git clone --depth=1 https://github.com/pingcap/tidb-operator && \
 cd tidb-operator/deploy/aws
 ```
 
-使用 `terraform` 命令初始化并部署集群：
+`terraform` コマンドで初期化して、クラスターをデプロイする：
 
 ``` shell
 terraform init
@@ -89,9 +89,9 @@ terraform apply
 
 > **注意：**
 >
-> `terraform apply` 过程中必须输入 "yes" 才能继续。
+> 継続するには、`terraform apply`が実行しているの間に "yes "を入力しなければならない。
 
-整个过程可能至少需要 10 分钟。`terraform apply` 执行成功后，控制台会输出类似如下的信息：
+全体の処理は最低でも10分はかかる。 terraform apply`の実行が成功すると、コンソールには以下のようなメッセージが出力される。
 
 ```
 Apply complete! Resources: 67 added，0 changed，0 destroyed.
@@ -109,13 +109,13 @@ kubeconfig_filename = credentials/kubeconfig_my-cluster
 region = us-west-21
 ```
 
-可以通过 `terraform output` 命令再次获取上面的输出信息。
+上記の出力情報は、`terraform output`コマンドを再度利用することで取得できる。
 
 > **注意：**
 >
-> 1.14 版本以前的 EKS 不支持自动开启 NLB 跨可用区负载均衡，因此默认配置下 会出现各台 TiDB 实例压力不均衡额状况。生产环境下，强烈建议参考 [AWS 官方文档](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-disable-crosszone-lb.html#enable-cross-zone)手动开启 NLB 的跨可用区负载均衡。
+> バージョン 1.14 より前の EKS は、アベイラビリティゾーン間の自動 NLB 負荷分散をサポートしていないため、デフォルトでは TiDB インスタンス間で不均衡な量の圧力が発生する。 本番環境については、[AWS公式ドキュメント](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-disable-crosszone-lb.html#enable-)を参照して、アベイラビリティゾーン間自動NLB負荷分散を手動で有効にすることを強くお勧めします。
 
-## 3. 访问数据库
+## 3. データベースをアクセスする
 
 `terraform apply` 完成后，可先通过 `ssh` 远程连接到堡垒机，再通过 MySQL client 来访问 TiDB 集群。
 
