@@ -182,9 +182,9 @@ default_cluster_version= "v4.0.1"
 
 ## 6. TiDBクラスターのスケーリング
 
-TiDBクラスターをスケーリングしたい場合、 `terraform.tfvars` ファイルに `default_cluster_tikv_count` か `default_cluster_tidb_count` 変数かを変更して、 `terraform apply` を実行してください。
+TiDBクラスターをスケールアウトしたい場合、 `terraform.tfvars` ファイルに `default_cluster_tikv_count` か `default_cluster_tidb_count` 変数かを変更して、 `terraform apply` を実行してください。
 
-例、 `default_cluster_tidb_count` を 2 から 4 に変更し、TiDB をスケーリングする：
+例、 `default_cluster_tidb_count` を 2 から 4 に変更し、TiDB をスケールアウトする：
 
 ```
 default_cluster_tidb_count = 4
@@ -192,16 +192,16 @@ default_cluster_tidb_count = 4
 
 > **注意：**
 >
-> - 由于缩容过程中无法确定会缩掉哪个节点，目前还不支持 TiDB 集群的缩容。
-> - 扩容过程会持续几分钟，可以通过 `kubectl --kubeconfig credentials/kubeconfig_<eks_name> get po -n <default_cluster_name> --watch` 命令持续观察进度。
+> - TiDB クラスタの縮小(スケールイン)は、縮小処理中にどのノードが縮小されるかを決定できないため、現在サポートされていません。
+> - スケールアウト処理は数分で終了し、 `kubectl --kubeconfig credentials/kubeconfig_<eks_name> get po -n <default_cluster_name> --watch` コマンドで継続的に進捗を見ることができます。
 
-## 7. 自定义
+## 7. カスタマイズ
 
-可以按需在 `terraform.tfvars` 文件中设置各个变量，例如集群名称和镜像版本等。
+クラスタ名やミラーバージョンなど、様々な変数を `terraform.tfvars` ファイルの中で必要に応じて設定することができる。
 
-### 自定义 AWS 相关的资源
+### AWS関連リソースのカスタマイズ
 
-由于 TiDB 服务通过 [Internal Elastic Load Balancer](https://aws.amazon.com/blogs/aws/internal-elastic-load-balancers/) 暴露，默认情况下，会创建一个 Amazon EC2 实例作为堡垒机，访问创建的 TiDB 集群。堡垒机上预装了 MySQL 和 Sysbench，所以可以通过 SSH 方式登陆到堡垒机后通过 ELB 访问 TiDB。如果的 VPC 中已经有了类似的 EC2 实例，可以通过设置 `create_bastion` 为 `false` 禁掉堡垒机的创建。
+TiDBサービスは[Internal Elastic Load Balancer](https://aws.amazon.com/blogs/aws/internal-elastic-load-balancers/)経由で公開されているため、デフォルトでは 踏み台としてAmazon EC2インスタンスを作って、作成されたTiDBクラスタにアクセスする。すでにVPCに同様のEC2インスタンスがある場合は、`create_bastion`を`false`に設定することで踏み台サーバーの作成を無効にすることができる。
 
 TiDB 版本和组件数量也可以在 `terraform.tfvars` 中修改，可以按照自己的需求配置。
 
